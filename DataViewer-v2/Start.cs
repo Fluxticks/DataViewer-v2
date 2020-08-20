@@ -27,7 +27,6 @@ namespace DataViewer_v2
             Properties.Settings.Default.file_amount = tmp;
             Properties.Settings.Default.Save();
             //checkForUpdate();
-            checkGitHubUpdate();
             InitializeComponent();
             this.lblVersion_Start.Text = this.lblVersion_Start.Text + version;
             this.lblVersion_Start.Location = new Point(this.Size.Width / 2 - this.lblVersion_Start.Size.Width / 2, this.lblVersion_Start.Location.Y);
@@ -157,6 +156,11 @@ namespace DataViewer_v2
             Settings st = new Settings(this);
             st.Show();
             this.Hide();
+        }
+
+        private void Start_Load(object sender, EventArgs e)
+        {
+            checkGitHubUpdate();
         }
     }
 }

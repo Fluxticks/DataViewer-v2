@@ -37,17 +37,18 @@ namespace DataViewer_v2
 
         private async Task checkGitHubUpdate()
         {
-            using (var manager = UpdateManager.GitHubUpdateManager(@"https://github.com/Fluxticks/DataViewer-v2"))
+            using (var manager = UpdateManager.GitHubUpdateManager("https://github.com/Fluxticks/DataViewer-v2"))
             {
+                //MessageBox.Show("checking for update");
                 var res = await manager.Result.CheckForUpdate();
+                MessageBox.Show("done");
                 var next = res.FutureReleaseEntry.Filename.ToSemanticVersion().ToString();
                 var prev = res.CurrentlyInstalledVersion.Filename.ToSemanticVersion().ToString();
 
                 string folder = Application.StartupPath.Replace(@"GGWLApp\app-" + prev, "") + "DataViewer_v2";
 
-                if (!prev.Equals(next))
-                {
-                    //if (res.FutureReleaseEntry == res.CurrentlyInstalledVersion){
+                
+                if (res.FutureReleaseEntry == res.CurrentlyInstalledVersion){
 
                     var opt = MessageBox.Show("There is an update available, would you like to download it? Versions: \n" + prev + " -> " + next, "Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
                     if (opt == DialogResult.Yes)

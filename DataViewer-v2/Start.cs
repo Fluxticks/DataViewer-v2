@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Deployment.Application;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -25,7 +26,8 @@ namespace DataViewer_v2
             Properties.Settings.Default.Save();
             Properties.Settings.Default.file_amount = tmp;
             Properties.Settings.Default.Save();
-            checkForUpdate();
+            //checkForUpdate();
+            checkGitHubUpdate();
             InitializeComponent();
             this.lblVersion_Start.Text = this.lblVersion_Start.Text + version;
             this.lblVersion_Start.Location = new Point(this.Size.Width / 2 - this.lblVersion_Start.Size.Width / 2, this.lblVersion_Start.Location.Y);
@@ -33,30 +35,42 @@ namespace DataViewer_v2
             
         }
 
-        private async Task checkForUpdate() {
-            using (var mgr = new UpdateManager(@"C:\Users\Benji\Documents\Coding\VisualStudio\Projects\DataViewer-v2\Releases"))
+        private async Task checkGitHubUpdate()
+        {
+            using (var manager = UpdateManager.GitHubUpdateManager(@"https://github.com/Fluxticks/DataViewer-v2"))
             {
-               var res = await mgr.CheckForUpdate();
-               var next = res.FutureReleaseEntry.Filename.ToSemanticVersion().ToString();
-               var prev = res.CurrentlyInstalledVersion.Filename.ToSemanticVersion().ToString();
-               string folder = Application.StartupPath.Replace(@"GGWLApp\app-" + prev, "") + "DataViewer_v2";
+                var res = await manager.Result.CheckForUpdate();
+                var next = res.FutureReleaseEntry.Filename.ToSemanticVersion().ToString();
+                var prev = "";
+                if (!Debugger.IsAttached)
+                {
+                    prev = res.CurrentlyInstalledVersion.Filename.ToSemanticVersion().ToString();
+                }
+                else
+                {
+                    prev = next;
+                }
 
-                if (res.FutureReleaseEntry != res.CurrentlyInstalledVersion) {
-                //if (res.FutureReleaseEntry == res.CurrentlyInstalledVersion){
-                   
-                    var opt = MessageBox.Show("There is an update available, would you like to download it? \n" + prev + "->" + next, "Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+                string folder = Application.StartupPath.Replace(@"GGWLApp\app-" + prev, "") + "DataViewer_v2";
+
+                if (!prev.Equals(next))
+                {
+                    //if (res.FutureReleaseEntry == res.CurrentlyInstalledVersion){
+
+                    var opt = MessageBox.Show("There is an update available, would you like to download it? Versions: \n" + prev + " -> " + next, "Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
                     if (opt == DialogResult.Yes)
-                    { 
+                    {
                         var cwd = Application.StartupPath;
                         var next_path = Application.StartupPath.Replace(prev, next);
-                        await mgr.UpdateApp();
-                        if(Directory.Exists(Application.StartupPath + data_folder))
+                        await manager.Result.UpdateApp();
+                        if (Directory.Exists(Application.StartupPath + data_folder))
                         {
                             Directory.Move(Application.StartupPath + data_folder, next_path + data_folder);
                         }
                         var dir = folder + "\\" + getLastDir(folder);
                         var conf = dir + @"\" + prev + @".0\user.config";
-                        if (File.Exists(folder + @"\user.config")) {
+                        if (File.Exists(folder + @"\user.config"))
+                        {
                             File.Delete(folder + @"\user.config");
                         }
                         File.Copy(conf, folder + @"\user.config");
@@ -69,6 +83,56 @@ namespace DataViewer_v2
                 {
                     getSettings(folder, prev);
                 }
+            }
+        }
+        private async Task checkForUpdate() {
+            using (var mgr = new UpdateManager(@"C:\Users\Benji\Documents\Coding\VisualStudio\Projects\DataViewer-v2\Releases"))
+            {
+               var res = await mgr.CheckForUpdate();
+                var next = res.FutureReleaseEntry.Filename.ToSemanticVersion().ToString();
+                var prev = "";
+                if (!Debugger.IsAttached)
+                {
+                    prev = res.CurrentlyInstalledVersion.Filename.ToSemanticVersion().ToString();
+                }
+                else
+                {
+                    prev = next;
+                }
+
+                string folder = Application.StartupPath.Replace(@"GGWLApp\app-" + prev, "") + "DataViewer_v2";
+
+                if (!prev.Equals(next))
+                {
+                    //if (res.FutureReleaseEntry == res.CurrentlyInstalledVersion){
+
+                    var opt = MessageBox.Show("There is an update available, would you like to download it? Versions: \n" + prev + " -> " + next, "Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+                    if (opt == DialogResult.Yes)
+                    {
+                        var cwd = Application.StartupPath;
+                        var next_path = Application.StartupPath.Replace(prev, next);
+                        await mgr.UpdateApp();
+                        if (Directory.Exists(Application.StartupPath + data_folder))
+                        {
+                            Directory.Move(Application.StartupPath + data_folder, next_path + data_folder);
+                        }
+                        var dir = folder + "\\" + getLastDir(folder);
+                        var conf = dir + @"\" + prev + @".0\user.config";
+                        if (File.Exists(folder + @"\user.config"))
+                        {
+                            File.Delete(folder + @"\user.config");
+                        }
+                        File.Copy(conf, folder + @"\user.config");
+
+                        MessageBox.Show("Update complete! Re-Open application to use the updated version.");
+                        Application.Exit();
+                    }
+                }
+                else
+                {
+                    getSettings(folder, prev);
+                }
+
             }
         }
 
@@ -90,13 +154,6 @@ namespace DataViewer_v2
                 File.Copy(path + @"\user.config", path +"\\"+ dir +"\\"+prev+@".0\user.config");
                 File.Delete(path + @"\user.config");
                 Properties.Settings.Default.Reload();
-            }
-        }
-
-        private async Task checkGitHubUpdate() {
-            using (var manager = UpdateManager.GitHubUpdateManager(@"C:\Users\Benji\Documents\Coding\VisualStudio\Projects\Release"))
-            {
-                await manager.Result.UpdateApp();
             }
         }
 

@@ -90,15 +90,7 @@ namespace DataViewer_v2
             {
                var res = await mgr.CheckForUpdate();
                 var next = res.FutureReleaseEntry.Filename.ToSemanticVersion().ToString();
-                var prev = "";
-                if (!Debugger.IsAttached)
-                {
-                    prev = res.CurrentlyInstalledVersion.Filename.ToSemanticVersion().ToString();
-                }
-                else
-                {
-                    prev = next;
-                }
+                var prev = res.CurrentlyInstalledVersion.Filename.ToSemanticVersion().ToString();
 
                 string folder = Application.StartupPath.Replace(@"GGWLApp\app-" + prev, "") + "DataViewer_v2";
 

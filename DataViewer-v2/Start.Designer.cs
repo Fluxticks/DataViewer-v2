@@ -108,7 +108,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.picIcon_Start)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion

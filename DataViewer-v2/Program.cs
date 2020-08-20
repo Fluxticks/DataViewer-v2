@@ -25,7 +25,6 @@ namespace DataViewer_v2
             Application.SetCompatibleTextRenderingDefault(false);
             Start st = new Start();
             Application.Run(st);
-
         }
     }
 }

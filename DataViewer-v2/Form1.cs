@@ -2,9 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -12,7 +10,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DataViewer_v2
@@ -28,7 +25,7 @@ namespace DataViewer_v2
         private bool firstEdit = true;
         private string rowHash;
         private string date;
-        private string data_folder = "\\data";
+        private string data_folder;
 
         //Config Vars
         private string fileNameFormat = Properties.Settings.Default.file_name;
@@ -36,7 +33,7 @@ namespace DataViewer_v2
 
 
 
-        public DataViewer()
+        public DataViewer(string data)
         {
             InitializeComponent();
             this.txtName_Add.KeyPress += new KeyPressEventHandler(this.checkKeyPress);
@@ -55,11 +52,14 @@ namespace DataViewer_v2
             this.dataSearchView.ColumnHeaderMouseClick += new DataGridViewCellMouseEventHandler(this.orderingChange);
             this.txtName_Add.LostFocus += new EventHandler(this.removeSpaces);
 
+            this.data_folder = data;
+
         }
 
-        public void postLoad() {
+        public void postLoad()
+        {
             //TextBox[] tmp_elements = new TextBox[] { txtName_Add, txtDOB_Add, txtYear_Add, txtPhone_Add, txtEmail_Add };
-            elements.Add("name_index",txtName_Add);
+            elements.Add("name_index", txtName_Add);
             elements.Add("dob_index", txtDOB_Add);
             elements.Add("year_index", txtYear_Add);
             elements.Add("phone_index", txtPhone_Add);
@@ -76,7 +76,8 @@ namespace DataViewer_v2
             headers.Add("contact_index", (int)Properties.Settings.Default["contact_index"]);
             headers.Add("archive_index", (int)Properties.Settings.Default["archive_index"]);
 
-            foreach (var item in elements) {
+            foreach (var item in elements)
+            {
                 item.Value.Enter += new EventHandler(enterTextBox);
             }
         }
@@ -144,7 +145,7 @@ namespace DataViewer_v2
                     }
                     counter++;
                 }*/
-                foreach(var item in elements)
+                foreach (var item in elements)
                 {
                     if (!(item.Value.Text.Trim().Equals("")))
                     {
@@ -152,7 +153,7 @@ namespace DataViewer_v2
                         {
                             tmpsql = "[" + header_names[(int)Properties.Settings.Default[item.Key]] + "] = '" + item.Value.Text.Trim() + "'";
                         }
-                        else 
+                        else
                         {
                             tmpsql += " and [" + header_names[(int)Properties.Settings.Default[item.Key]] + "] = '" + item.Value.Text.Trim() + "'";
                         }
@@ -197,14 +198,15 @@ namespace DataViewer_v2
         }
         private void doubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            DataViewer f2 = new DataViewer();
+            DataViewer f2 = new DataViewer(data_folder);
             var index = e.RowIndex;
             if (index > -1)
             {
                 DataGridViewRow row = dataSearchView.Rows[index];
                 string[] rowData = new string[header_names.Length];
 
-                foreach (var item in headers) {
+                foreach (var item in headers)
+                {
                     rowData[item.Value] = row.Cells[item.Value].Value.ToString();
                 }
 
@@ -334,8 +336,6 @@ namespace DataViewer_v2
             int childMonth = DOB.Month;
             int childYear = DOB.Year;
 
-            //int age = currentYear - childYear;
-
             int currentTerm;
             int childTerm;
 
@@ -344,15 +344,6 @@ namespace DataViewer_v2
             currentTerm = (currentMonth >= 9) ? 1 : ((currentMonth <= 3) ? 2 : 3);
             childTerm = (childMonth >= 9) ? 1 : ((childMonth <= 3) ? 2 : 3);
             currentYear += (currentTerm == 1) ? 1 : 0;
-
-            /*if (currentMonth > childMonth)
-            {
-                age--;
-            }
-            else if (currentMonth == childMonth && currentDay > childDay)
-            {
-                age--;
-            }*/
 
             int yrGr = (currentYear - childYear - ((childTerm == 1) ? 6 : 5));
 
@@ -408,7 +399,7 @@ namespace DataViewer_v2
         }
 
         public void loadData()
-        { 
+        {
             string[] firstline = File.ReadLines(workingFile).First().Split(',');
             for (int i = 0; i < firstline.Length; i++)
             {
@@ -567,7 +558,7 @@ namespace DataViewer_v2
 
                 if (res == DialogResult.OK)
                 {
-                    Application.Exit();
+                    return;
                 }
             }
             if (files.Count > filesToKeep)
@@ -658,7 +649,7 @@ namespace DataViewer_v2
 
             // Hash Column
             dt.Columns[header_names[Properties.Settings.Default.hash_index]].Convert(val => val.ToString());
-            
+
             // Date Added Column
             try
             {
@@ -671,7 +662,7 @@ namespace DataViewer_v2
 
             // Name Column
             dt.Columns[header_names[Properties.Settings.Default.name_index]].Convert(val => val.ToString());
-            
+
             // DOB Column
             try
             {
@@ -777,7 +768,7 @@ namespace DataViewer_v2
 
         }
 
-        private string checkHashDuplicate(string line) 
+        private string checkHashDuplicate(string line)
         {
             string hash = HashFunction(line);
             string sql = header_names[Properties.Settings.Default.hash_index] + " = '" + hash + "'";
@@ -786,7 +777,8 @@ namespace DataViewer_v2
             {
                 return HashFunction(hash);
             }
-            else {
+            else
+            {
                 return hash;
             }
         }
@@ -841,12 +833,14 @@ namespace DataViewer_v2
                     }
 
                 }*/
-                foreach (var item in elements) {
+                foreach (var item in elements)
+                {
                     if (item.Value.Text.Trim().Equals(""))
                     {
                         export[(int)Properties.Settings.Default[item.Key]] = null;
                     }
-                    else {
+                    else
+                    {
                         export[(int)Properties.Settings.Default[item.Key]] = item.Value.Text;
                     }
                 }
